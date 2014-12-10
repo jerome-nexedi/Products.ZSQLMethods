@@ -34,6 +34,8 @@ from DateTime.DateTime import DateTime
 from ExtensionClass import Base
 from BTrees.OOBTree import OOBucket as Bucket
 from OFS.SimpleItem import Item
+from OFS.History import Historical
+from OFS.History import html_diff
 from Persistence import Persistent
 import Products
 from webdav.Resource import Resource
@@ -279,7 +281,8 @@ class DA(BaseQuery,
          Persistent,
          RoleManager,
          Item,
-         Resource
+         Resource,
+         Historical
         ):
     'Database Adapter'
 
@@ -308,6 +311,7 @@ class DA(BaseQuery,
         )
         + RoleManager.manage_options
         + Item.manage_options
+        + Historical.manage_options
         )
 
     def __init__(self, id, title, connection_id, arguments, template):
@@ -452,6 +456,13 @@ class DA(BaseQuery,
         """Return content for use by the Find machinery."""
         return '%s\n%s' % (self.arguments_src, self.src)
 
+    def manage_historyCompare(self, rev1, rev2, REQUEST,
+                              historyComparisonResults=''):
+        return DA.inheritedAttribute('manage_historyCompare')(
+                self, rev1, rev2, REQUEST,
+                historyComparisonResults=html_diff(
+                    rev1.document_src(),
+                    rev2.document_src()))
 
     # WebDAV / FTP support
 
